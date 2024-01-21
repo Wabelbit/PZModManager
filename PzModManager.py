@@ -1,17 +1,25 @@
-import string
+import os
 import sys
-from typing import List, Iterable, Tuple, Optional, Set
+import string
+from typing import List, Iterable, Optional, Set
 import random
-import winreg  # TODO windows only!
 
-from PySide6.QtCore import QObject, Slot, QAbstractItemModel, QModelIndex, QAbstractListModel, Qt, QSortFilterProxyModel
+from PySide6.QtCore import QObject, Slot, QAbstractListModel, Qt, QSortFilterProxyModel
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
-from MainWindow_ui import Ui_MainWindow
-from ModSelector_ui import Ui_ModSelector
+
+from pz import PZModInfo
+from ui.MainWindow_ui import Ui_MainWindow
+from ui.ModSelector_ui import Ui_ModSelector
 from pathlib import Path
 
-
-PZ_HOME_DIR = Path.home() / "Zomboid"
+if os.name == 'nt':
+    # noinspection PyUnresolvedReferences
+    from win import *
+elif os.name == 'posix':
+    # noinspection PyUnresolvedReferences
+    from linux import *
+else:
+    raise Exception("Unsupported operating system")
 
 
 class GeneratedElement(QObject):
@@ -25,72 +33,6 @@ class GeneratedElement(QObject):
 
     def fix_object_name(self, what: QObject):
         what.setObjectName(f"{self.unique(what.objectName())}")
-
-
-class PZModInfo:
-    """Represents the contents of the mod.info file that is part of every mod"""
-
-    # noinspection PyPep8Naming
-    # noinspection PyShadowingBuiltins
-    def __init__(self,
-                 name: str,
-                 id: str,
-                 poster: Optional[List[Path]] = None,
-                 require: Optional[List[str]] = None,
-                 versionMin: Optional[str] = None,
-                 versionMax: Optional[str] = None,
-                 description: Optional[List[str]] = None,
-                 pack: Optional[List[Path]] = None,
-                 tiledef: Optional[List[str]] = None,
-                 url: Optional[List[str]] = None,
-                 icon: Optional[str] = None,
-                 authors: Optional[List[str]] = None,
-                 **kwargs
-                 ):
-        """
-        :param name: The name of the mod
-        :param id: The id of the mod
-        :param poster: Cover image(s)
-        :param require: Mod ID(s) of dependencies
-        :param versionMin: Lowest compatible game version
-        :param versionMax: Highest compatible game version
-        :param description: The description displayed in the mod menu
-        :param url: Website URL
-        :param pack: Third-party texture pack(s)
-        :param tiledef: File(s) with tile parameters
-        """
-        assert name
-        assert id
-        self.name = name
-        self.id = id
-        self.poster = poster
-        self.require = require
-        self.versionMin = versionMin
-        self.versionMax = versionMax
-        self.description = "\n".join(description)
-        self.pack = pack
-        self.tiledef = tiledef
-        self.url = url
-        self.icon = icon
-        self.authors = authors
-        self.extra_fields = kwargs
-
-    @staticmethod
-    def from_info_file(mod_info_file: Path):
-        data = {"name": "", "id": ""}
-        with open(mod_info_file) as f:
-            for line in f.readlines():
-                line = line.strip()
-                if not line:
-                    continue
-                key, value = line.split("=")
-                if key not in data:
-                    data[key] = []
-                if isinstance(data[key], list):
-                    data[key].append(value)
-                else:
-                    data[key] = value
-        return PZModInfo(**data)
 
 
 class ModItem:
@@ -145,13 +87,6 @@ class ModItemModel(QAbstractListModel):
             del self.items[row]
             del self.indices[row]
         super().endRemoveRows()
-
-
-def get_steam_path() -> Path:
-    # On Windows, the Steam installation location can be read from HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\SteamPath
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "SOFTWARE\\Valve\\Steam") as handle:
-        steam_path = winreg.QueryValueEx(handle, "SteamPath")[0]
-    return Path(steam_path)
 
 
 def discover_available_mods() -> List[ModItem]:
