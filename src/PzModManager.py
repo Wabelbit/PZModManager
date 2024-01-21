@@ -116,10 +116,12 @@ class ModManager(QObject):
             # from disabled to enabled
             selection = [self.disabled_filter_model.mapToSource(filtered_index)
                          for filtered_index in self.ui.list_disabledMods.selectedIndexes()]
+            self.ui.list_disabledMods.clearSelection()
         else:
             # from enabled to disabled
             selection = [self.enabled_filter_model.mapToSource(filtered_index)
                          for filtered_index in self.ui.list_enabledMods.selectedIndexes()]
+            self.ui.list_enabledMods.clearSelection()
 
         print(f"Toggle to {to_state} {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
         if len(selection) > 0:
