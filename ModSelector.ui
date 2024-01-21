@@ -29,7 +29,7 @@
         <string>Available mods and workshop items</string>
        </property>
        <property name="dragDropMode">
-        <enum>QAbstractItemView::DragOnly</enum>
+        <enum>QAbstractItemView::NoDragDrop</enum>
        </property>
        <property name="defaultDropAction">
         <enum>Qt::IgnoreAction</enum>
@@ -89,7 +89,7 @@
         <string>Available mods and workshop items</string>
        </property>
        <property name="dragDropMode">
-        <enum>QAbstractItemView::DragOnly</enum>
+        <enum>QAbstractItemView::NoDragDrop</enum>
        </property>
        <property name="defaultDropAction">
         <enum>Qt::IgnoreAction</enum>
