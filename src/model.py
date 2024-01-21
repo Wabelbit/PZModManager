@@ -44,6 +44,9 @@ class ModItemModel(QAbstractListModel):
         for i, modInfo in enumerate(mods):
             self.indices.append(super().createIndex(i, 0, modInfo))
 
+    def get_enabled_mods(self) -> List[ModItem]:
+        return sorted((mod for mod in self.items if mod.enabled), key=lambda mod: mod.load_order)
+
     def counts(self) -> (int, int):
         total = len(self.items)
         enabled = sum(1 for item in self.items if item.enabled)

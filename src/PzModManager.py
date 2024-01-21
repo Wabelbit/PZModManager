@@ -61,11 +61,13 @@ def read_enabled_mods(server_config: Path, mod_items: List[ModItem]):
 class ModManager(QObject):
 
     modStateChanged = Signal(int, int)  # total count, enabled count
+    editorDirty = Signal(bool)
 
     def __init__(self, server_config: Path, tabber: QTabWidget):
         # init stuff
         super().__init__(tabber)
         self.tabber = tabber
+        self.tab_index: int = -1
         self.config_name = server_config.name[:-4]
         self.config_path = server_config
 
@@ -85,6 +87,7 @@ class ModManager(QObject):
         self.ui.button_moveUp.clicked.connect(self.move_enabled_up)
         self.ui.button_moveDown.clicked.connect(self.move_enabled_down)
         self.modStateChanged.connect(self.mod_state_changed)
+        self.editorDirty.connect(self.editor_dirty)
 
         # create data model and set up list views
         self.all_mods = discover_available_mods()
@@ -137,6 +140,7 @@ class ModManager(QObject):
             for selected_item_index in selection:
                 self.model.set_mod_state(selected_item_index, to_state)
             self.modStateChanged.emit(*self.model.counts())
+            self.editorDirty.emit(True)
 
     @Slot()
     def set_disabled_list_active(self):
@@ -179,6 +183,8 @@ class ModManager(QObject):
             filtered_rows_to_select.append(filtered_item_index_before.row())
             self.model.update()
 
+        self.editorDirty.emit(True)
+
         # update current selection accordingly, so it gets moved with the item(s)
         list_view.clearSelection()
         sm = list_view.selectionModel()
@@ -195,17 +201,42 @@ class ModManager(QObject):
         self.disabled_filter_model.invalidate()
 
     @Slot()
+    def editor_dirty(self, is_dirty: bool):
+        tab: QTabWidget = self.parent()
+        current_text = tab.tabText(self.tab_index)
+        if is_dirty and not current_text.endswith('*'):
+            tab.setTabText(self.tab_index, current_text + "*")
+        elif not is_dirty and current_text.endswith('*'):
+            tab.setTabText(self.tab_index, current_text[:-1])
+
+    @Slot()
     def show_details(self, visible: bool):
         self.ui.widget_modDetails.setVisible(visible)
 
     @Slot()
     def save(self):
-        if not self.is_active:
-            return
+        if self.is_active:
+            self._save()
 
     @Slot()
     def save_all(self):
-        pass
+        self._save()
+
+    def _save(self):
+        enabled_mods = self.model.get_enabled_mods()
+        mod_ids = ";".join(mod.modInfo.id for mod in enabled_mods)
+        workshop_ids = ";".join(set(mod.workshopId for mod in enabled_mods if mod.workshopId))
+
+        with self.config_path.open("r", newline='\n') as f:
+            current_contents = f.readlines()
+        for i in range(len(current_contents)):
+            if current_contents[i].startswith("Mods="):
+                current_contents[i] = f"Mods={mod_ids}\n"
+            elif current_contents[i].startswith("WorkshopItems="):
+                current_contents[i] = f"WorkshopItems={workshop_ids}\n"
+        with self.config_path.open("w", newline='\n') as f:
+            f.writelines(current_contents)
+        self.editorDirty.emit(False)
 
     @Slot()
     def select_all(self):
@@ -234,7 +265,7 @@ if __name__ == "__main__":
 
     manager: ModManager
     for manager in load_server_configs(ui.tabWidget):
-        ui.tabWidget.addTab(manager.widget, manager.config_name)
+        manager.tab_index = ui.tabWidget.addTab(manager.widget, manager.config_name)
         ui.action_ShowDetails.toggled.connect(manager.show_details)
         ui.action_Save.triggered.connect(manager.save)
         ui.action_SaveAll.triggered.connect(manager.save_all)
