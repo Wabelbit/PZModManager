@@ -30,10 +30,26 @@ class Ui_ModSelector(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.label = QLabel(ModSelector)
-        self.label.setObjectName(u"label")
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(3)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.label_disabled = QLabel(ModSelector)
+        self.label_disabled.setObjectName(u"label_disabled")
 
-        self.verticalLayout.addWidget(self.label)
+        self.horizontalLayout.addWidget(self.label_disabled)
+
+        self.label_disabledCount = QLabel(ModSelector)
+        self.label_disabledCount.setObjectName(u"label_disabledCount")
+        sizePolicy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_disabledCount.sizePolicy().hasHeightForWidth())
+        self.label_disabledCount.setSizePolicy(sizePolicy)
+
+        self.horizontalLayout.addWidget(self.label_disabledCount)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.lineEdit_filterDisabled = QLineEdit(ModSelector)
         self.lineEdit_filterDisabled.setObjectName(u"lineEdit_filterDisabled")
@@ -64,10 +80,23 @@ class Ui_ModSelector(object):
 
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.label_2 = QLabel(ModSelector)
-        self.label_2.setObjectName(u"label_2")
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setSpacing(3)
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.label_enabled = QLabel(ModSelector)
+        self.label_enabled.setObjectName(u"label_enabled")
 
-        self.verticalLayout_3.addWidget(self.label_2)
+        self.horizontalLayout_4.addWidget(self.label_enabled)
+
+        self.label_enabledCount = QLabel(ModSelector)
+        self.label_enabledCount.setObjectName(u"label_enabledCount")
+        sizePolicy.setHeightForWidth(self.label_enabledCount.sizePolicy().hasHeightForWidth())
+        self.label_enabledCount.setSizePolicy(sizePolicy)
+
+        self.horizontalLayout_4.addWidget(self.label_enabledCount)
+
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
         self.lineEdit_filterEnabled = QLineEdit(ModSelector)
         self.lineEdit_filterEnabled.setObjectName(u"lineEdit_filterEnabled")
@@ -95,22 +124,22 @@ class Ui_ModSelector(object):
         self.verticalLayout_4.setSizeConstraint(QLayout.SetFixedSize)
         self.button_moveUp = QPushButton(ModSelector)
         self.button_moveUp.setObjectName(u"button_moveUp")
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.button_moveUp.sizePolicy().hasHeightForWidth())
-        self.button_moveUp.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.button_moveUp.sizePolicy().hasHeightForWidth())
+        self.button_moveUp.setSizePolicy(sizePolicy1)
         self.button_moveUp.setMaximumSize(QSize(25, 16777215))
 
         self.verticalLayout_4.addWidget(self.button_moveUp)
 
         self.button_moveDown = QPushButton(ModSelector)
         self.button_moveDown.setObjectName(u"button_moveDown")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.button_moveDown.sizePolicy().hasHeightForWidth())
-        self.button_moveDown.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.button_moveDown.sizePolicy().hasHeightForWidth())
+        self.button_moveDown.setSizePolicy(sizePolicy2)
         self.button_moveDown.setMaximumSize(QSize(25, 16777215))
 
         self.verticalLayout_4.addWidget(self.button_moveDown)
@@ -150,13 +179,15 @@ class Ui_ModSelector(object):
 
     def retranslateUi(self, ModSelector):
         ModSelector.setWindowTitle(QCoreApplication.translate("ModSelector", u"ModSelector", None))
-        self.label.setText(QCoreApplication.translate("ModSelector", u"Available items", None))
+        self.label_disabled.setText(QCoreApplication.translate("ModSelector", u"Available items", None))
+        self.label_disabledCount.setText(QCoreApplication.translate("ModSelector", u"(420)", None))
         self.lineEdit_filterDisabled.setPlaceholderText(QCoreApplication.translate("ModSelector", u"Search...", None))
 #if QT_CONFIG(tooltip)
         self.list_disabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
 #endif // QT_CONFIG(tooltip)
         self.button_enable.setText(QCoreApplication.translate("ModSelector", u"Enable selected \u2192", None))
-        self.label_2.setText(QCoreApplication.translate("ModSelector", u"Enabled items", None))
+        self.label_enabled.setText(QCoreApplication.translate("ModSelector", u"Enabled items", None))
+        self.label_enabledCount.setText(QCoreApplication.translate("ModSelector", u"(69)", None))
         self.lineEdit_filterEnabled.setPlaceholderText(QCoreApplication.translate("ModSelector", u"Search...", None))
 #if QT_CONFIG(tooltip)
         self.list_enabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))

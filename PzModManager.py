@@ -4,7 +4,7 @@ import string
 from typing import List, Iterable, Optional, Set
 import random
 
-from PySide6.QtCore import QObject, Slot, QAbstractListModel, Qt, QSortFilterProxyModel, QModelIndex
+from PySide6.QtCore import QObject, Slot, QAbstractListModel, Qt, QSortFilterProxyModel, QModelIndex, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
 
@@ -61,6 +61,11 @@ class ModItemModel(QAbstractListModel):
             self.indices.append(super().createIndex(i, 0, modInfo))
 
         super().dataChanged.emit(self.indices[0], self.indices[-1], [])
+
+    def counts(self) -> (int, int):
+        total = len(self.items)
+        enabled = sum(1 for item in self.items if item.enabled)
+        return total, enabled
 
     def item(self, index: QModelIndex):
         return self.items[index.row()]
@@ -150,6 +155,9 @@ class ModViewProxyModel(QSortFilterProxyModel):
 
 
 class ModManager(GeneratedElement):
+
+    modStateChanged = Signal(int, int)  # total count, enabled count
+
     def __init__(self, server_config: Path, tabber: QTabWidget):
         # init stuff
         super().__init__(tabber)
@@ -170,33 +178,44 @@ class ModManager(GeneratedElement):
         self.ui.button_enable.clicked.connect(self.enable_mods)
         self.fix_object_name(self.ui.button_disable)
         self.ui.button_disable.clicked.connect(self.disable_mods)
+        self.modStateChanged.connect(self.mod_state_changed)
 
         # create data model and set up list views
-        all_mods = discover_available_mods()
-        read_enabled_mods(server_config, all_mods)
-        model = ModItemModel(all_mods, parent=self.widget)
+        self.all_mods = discover_available_mods()
+        read_enabled_mods(server_config, self.all_mods)
+        self.model = ModItemModel(self.all_mods, parent=self.widget)
 
         # ... model for "available" list
         disabled_filter_model = ModViewProxyModel(False, parent=self.widget)
-        disabled_filter_model.setSourceModel(model)
+        disabled_filter_model.setSourceModel(self.model)
         self.ui.list_disabledMods.setModel(disabled_filter_model)
 
         # ... model for "enabled" list
         enabled_filter_model = ModViewProxyModel(True, parent=self.widget)
-        enabled_filter_model.setSourceModel(model)
+        enabled_filter_model.setSourceModel(self.model)
         self.ui.list_enabledMods.setModel(enabled_filter_model)
 
         # hook up search bars
         self.ui.lineEdit_filterDisabled.textChanged.connect(disabled_filter_model.setFilterFixedString)
         self.ui.lineEdit_filterEnabled.textChanged.connect(enabled_filter_model.setFilterFixedString)
 
+        # update certain things
+        self.modStateChanged.emit(*self.model.counts())
+
     @Slot()
     def enable_mods(self):
         print("Enabling mods in " + self.config_name, self.tabber.currentWidget())
+        self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
     def disable_mods(self):
         print("Disabling mods in " + self.config_name, self.tabber.currentWidget())
+        self.modStateChanged.emit(*self.model.counts())
+
+    @Slot()
+    def mod_state_changed(self, total_count: int, enabled_count: int):
+        self.ui.label_disabledCount.setText(f"({total_count-enabled_count})")
+        self.ui.label_enabledCount.setText(f"({enabled_count})")
 
     @Slot()
     def show_details(self, visible: bool):
