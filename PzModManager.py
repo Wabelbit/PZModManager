@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
 from pz import PZModInfo
 from ui.MainWindow_ui import Ui_MainWindow
 from ui.ModSelector_ui import Ui_ModSelector
+from ui.ModDetails_ui import Ui_ModDetails
 from pathlib import Path
 
 if os.name == 'nt':
@@ -142,13 +143,14 @@ class ModManager(GeneratedElement):
         self.ui = Ui_ModSelector()
         self.ui.setupUi(self.widget)
         self.fix_object_name(self.widget)
+        self.ui_details = Ui_ModDetails()
+        self.ui_details.setupUi(self.ui.widget_modDetails)
 
         # set up slots
         self.fix_object_name(self.ui.button_enable)
         self.ui.button_enable.clicked.connect(self.enable_mods)
         self.fix_object_name(self.ui.button_disable)
         self.ui.button_disable.clicked.connect(self.disable_mods)
-        print(self.config_name + " slotted", self.ui.button_enable)
 
         # create data model and set up list views
         all_mods = discover_available_mods()
@@ -166,6 +168,10 @@ class ModManager(GeneratedElement):
     def disable_mods(self):
         print("Disabling mods in " + self.config_name, self.tabber.currentWidget())
 
+    @Slot()
+    def show_details(self, visible: bool):
+        self.ui.widget_modDetails.setVisible(visible)
+
 
 def load_server_configs(tabber: QTabWidget) -> Iterable[ModManager]:
     server_config_dir = PZ_HOME_DIR / "Server"  # TODO this might not be the correct path on linux
@@ -182,9 +188,12 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(main_window)
 
+    ui.action_ShowDetails.setChecked(True)
+
     manager: ModManager
     for manager in load_server_configs(ui.tabWidget):
         ui.tabWidget.addTab(manager.widget, manager.config_name)
+        ui.action_ShowDetails.toggled.connect(manager.show_details)
 
     main_window.show()
 
