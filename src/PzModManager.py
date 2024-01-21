@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Iterable, Optional
 
 from PySide6.QtCore import QObject, Slot, Signal, QItemSelectionModel
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget, QListView
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget, QListView, QMessageBox
 
 from model import ModItem, ModItemModel, ModViewProxyModel
 from pz import PZModInfo
@@ -78,6 +78,7 @@ class ModManager(QObject):
         self.ui_details = Ui_ModDetails()
         self.ui_details.setupUi(self.ui.widget_modDetails)
         self.active_list: Optional[QListView] = None
+        self.is_dirty = False
 
         # set up slots
         self.ui.button_enable.clicked.connect(self.enable_mods)
@@ -202,6 +203,7 @@ class ModManager(QObject):
 
     @Slot()
     def editor_dirty(self, is_dirty: bool):
+        self.is_dirty = is_dirty
         tab: QTabWidget = self.parent()
         current_text = tab.tabText(self.tab_index)
         if is_dirty and not current_text.endswith('*'):
@@ -253,11 +255,34 @@ def load_server_configs(tabber: QTabWidget) -> Iterable[ModManager]:
         yield ModManager(config_file, tabber)
 
 
-if __name__ == "__main__":
+class MainWindow(QMainWindow):
+    def __init__(self, ui_main_window: Ui_MainWindow):
+        super().__init__()
+        self.ui = ui_main_window
+        self.managers: List[ModManager] = []
+
+    def closeEvent(self, event):
+        if any(mgr.is_dirty for mgr in self.managers):
+            choice = QMessageBox.question(self, "PZ Mod Manager", "Do you want to save changes?",
+                                          QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
+                                          QMessageBox.StandardButton.Cancel)
+            if choice == QMessageBox.StandardButton.Cancel:
+                event.ignore()
+                return
+
+            if choice == QMessageBox.StandardButton.SaveAll:
+                self.ui.action_SaveAll.trigger()
+        event.accept()
+
+    def register_manager(self, manager: ModManager):
+        self.managers.append(manager)
+
+
+def main() -> int:
     app = QApplication(sys.argv)
 
-    main_window = QMainWindow()
     ui = Ui_MainWindow()
+    main_window = MainWindow(ui)
     ui.setupUi(main_window)
 
     ui.action_ShowDetails.setChecked(True)
@@ -270,7 +295,12 @@ if __name__ == "__main__":
         ui.action_Save.triggered.connect(manager.save)
         ui.action_SaveAll.triggered.connect(manager.save_all)
         ui.action_SelectAll.triggered.connect(manager.select_all)
+        main_window.register_manager(manager)
 
     main_window.show()
 
-    sys.exit(app.exec())
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
