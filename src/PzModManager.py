@@ -105,25 +105,27 @@ class ModManager(QObject):
 
     @Slot()
     def enable_mods(self):
-        selection = self.ui.list_disabledMods.selectedIndexes()
-        print(f"Enabling {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
-        if len(selection) == 0:
-            return
-        for selected_item_index in selection:
-            selected_item_index = self.disabled_filter_model.mapToSource(selected_item_index)
-            self.model.set_mod_state(selected_item_index, True)
-        self.modStateChanged.emit(*self.model.counts())
+        self._toggle_selected_mods(True)
 
     @Slot()
     def disable_mods(self):
-        selection = self.ui.list_enabledMods.selectedIndexes()
-        print(f"Disabling {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
-        if len(selection) == 0:
-            return
-        for selected_item_index in selection:
-            selected_item_index = self.enabled_filter_model.mapToSource(selected_item_index)
-            self.model.set_mod_state(selected_item_index, False)
-        self.modStateChanged.emit(*self.model.counts())
+        self._toggle_selected_mods(False)
+
+    def _toggle_selected_mods(self, to_state: bool):
+        if to_state is True:
+            # from disabled to enabled
+            selection = [self.disabled_filter_model.mapToSource(filtered_index)
+                         for filtered_index in self.ui.list_disabledMods.selectedIndexes()]
+        else:
+            # from enabled to disabled
+            selection = [self.enabled_filter_model.mapToSource(filtered_index)
+                         for filtered_index in self.ui.list_enabledMods.selectedIndexes()]
+
+        print(f"Toggle to {to_state} {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
+        if len(selection) > 0:
+            for selected_item_index in selection:
+                self.model.set_mod_state(selected_item_index, to_state)
+            self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
     def mod_state_changed(self, total_count: int, enabled_count: int):
