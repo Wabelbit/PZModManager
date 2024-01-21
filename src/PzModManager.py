@@ -1,10 +1,10 @@
 import os
 import sys
 from pathlib import Path
-from typing import List, Iterable, Set
+from typing import List, Iterable, Optional
 
 from PySide6.QtCore import QObject, Slot, Signal
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget, QListView
 
 from model import ModItem, ModItemModel, ModViewProxyModel
 from pz import PZModInfo
@@ -75,10 +75,13 @@ class ModManager(QObject):
         self.ui.setupUi(self.widget)
         self.ui_details = Ui_ModDetails()
         self.ui_details.setupUi(self.ui.widget_modDetails)
+        self.active_list: Optional[QListView] = None
 
         # set up slots
         self.ui.button_enable.clicked.connect(self.enable_mods)
         self.ui.button_disable.clicked.connect(self.disable_mods)
+        self.ui.list_disabledMods.clicked.connect(self.set_disabled_list_active)
+        self.ui.list_enabledMods.clicked.connect(self.set_enabled_list_active)
         self.modStateChanged.connect(self.mod_state_changed)
 
         # create data model and set up list views
@@ -102,6 +105,10 @@ class ModManager(QObject):
 
         # update certain things
         self.modStateChanged.emit(*self.model.counts())
+
+    @property
+    def is_active(self) -> bool:
+        return self.tabber.currentWidget() == self.widget
 
     @Slot()
     def enable_mods(self):
@@ -130,6 +137,14 @@ class ModManager(QObject):
             self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
+    def set_disabled_list_active(self):
+        self.active_list = self.ui.list_disabledMods
+
+    @Slot()
+    def set_enabled_list_active(self):
+        self.active_list = self.ui.list_enabledMods
+
+    @Slot()
     def mod_state_changed(self, total_count: int, enabled_count: int):
         print("Mods state changed", total_count, enabled_count)
         self.ui.label_disabledCount.setText(f"({total_count-enabled_count})")
@@ -141,6 +156,21 @@ class ModManager(QObject):
     @Slot()
     def show_details(self, visible: bool):
         self.ui.widget_modDetails.setVisible(visible)
+
+    @Slot()
+    def save(self):
+        if not self.is_active:
+            return
+
+    @Slot()
+    def save_all(self):
+        pass
+
+    @Slot()
+    def select_all(self):
+        if not self.is_active:
+            return
+        self.active_list.selectAll()
 
 
 def load_server_configs(tabber: QTabWidget) -> Iterable[ModManager]:
@@ -159,11 +189,15 @@ if __name__ == "__main__":
     ui.setupUi(main_window)
 
     ui.action_ShowDetails.setChecked(True)
+    ui.action_Quit.triggered.connect(app.quit)
 
     manager: ModManager
     for manager in load_server_configs(ui.tabWidget):
         ui.tabWidget.addTab(manager.widget, manager.config_name)
         ui.action_ShowDetails.toggled.connect(manager.show_details)
+        ui.action_Save.triggered.connect(manager.save)
+        ui.action_SaveAll.triggered.connect(manager.save_all)
+        ui.action_SelectAll.triggered.connect(manager.select_all)
 
     main_window.show()
 
