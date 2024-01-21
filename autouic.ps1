@@ -2,7 +2,8 @@ $uiFiles = Get-ChildItem "ui/*.ui"
 
 foreach ($item in $uiFiles)
 {
-    Write-Output $item.fullName
+    $src = $item.fullName
     $dest = $item.fullName.Substring(0, $item.fullName.length - 3) + "_ui.py"
-    Write-Output $dest
+    Write-Output "$src -> $dest"
+    pyside6-uic.exe "$src" -o "$dest"
 }
