@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['PzModManager.py'],
+    ['src\\PzModManager.py'],
     pathex=[],
     binaries=[],
     datas=[],

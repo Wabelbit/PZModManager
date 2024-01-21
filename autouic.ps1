@@ -1,4 +1,4 @@
-$uiFiles = Get-ChildItem "ui/*.ui"
+$uiFiles = Get-ChildItem "src/ui/*.ui"
 
 foreach ($item in $uiFiles)
 {
