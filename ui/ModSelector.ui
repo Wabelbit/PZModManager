@@ -26,6 +26,19 @@
         </widget>
        </item>
        <item>
+        <widget class="QLineEdit" name="lineEdit_filterDisabled">
+         <property name="maxLength">
+          <number>255</number>
+         </property>
+         <property name="placeholderText">
+          <string>Search...</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QListView" name="list_disabledMods">
          <property name="toolTip">
           <string>Available mods and workshop items</string>
@@ -71,6 +84,19 @@
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>Enabled items</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_filterEnabled">
+         <property name="maxLength">
+          <number>255</number>
+         </property>
+         <property name="placeholderText">
+          <string>Search...</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -171,7 +197,14 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>lineEdit_filterDisabled</tabstop>
   <tabstop>list_disabledMods</tabstop>
+  <tabstop>button_enable</tabstop>
+  <tabstop>lineEdit_filterEnabled</tabstop>
+  <tabstop>list_enabledMods</tabstop>
+  <tabstop>button_disable</tabstop>
+  <tabstop>button_moveUp</tabstop>
+  <tabstop>button_moveDown</tabstop>
  </tabstops>
  <resources/>
  <connections/>

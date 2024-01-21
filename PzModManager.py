@@ -156,9 +156,20 @@ class ModManager(GeneratedElement):
         all_mods = discover_available_mods()
         read_enabled_mods(server_config, all_mods)
         model = ModItemModel(all_mods, parent=self.widget)
+
+        # ... model for "available" list
         disabled_filter_model = QSortFilterProxyModel(parent=self.widget)
         disabled_filter_model.setSourceModel(model)
         self.ui.list_disabledMods.setModel(disabled_filter_model)
+
+        # ... model for "enabled" list
+        enabled_filter_model = QSortFilterProxyModel(parent=self.widget)
+        enabled_filter_model.setSourceModel(model)
+        self.ui.list_enabledMods.setModel(enabled_filter_model)
+
+        # hook up search bars
+        self.ui.lineEdit_filterDisabled.textChanged.connect(disabled_filter_model.setFilterFixedString)
+        self.ui.lineEdit_filterEnabled.textChanged.connect(enabled_filter_model.setFilterFixedString)
 
     @Slot()
     def enable_mods(self):

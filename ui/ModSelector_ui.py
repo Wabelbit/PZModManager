@@ -16,8 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QLabel,
-    QLayout, QListView, QPushButton, QSizePolicy,
-    QVBoxLayout, QWidget)
+    QLayout, QLineEdit, QListView, QPushButton,
+    QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_ModSelector(object):
     def setupUi(self, ModSelector):
@@ -34,6 +34,13 @@ class Ui_ModSelector(object):
         self.label.setObjectName(u"label")
 
         self.verticalLayout.addWidget(self.label)
+
+        self.lineEdit_filterDisabled = QLineEdit(ModSelector)
+        self.lineEdit_filterDisabled.setObjectName(u"lineEdit_filterDisabled")
+        self.lineEdit_filterDisabled.setMaxLength(255)
+        self.lineEdit_filterDisabled.setClearButtonEnabled(True)
+
+        self.verticalLayout.addWidget(self.lineEdit_filterDisabled)
 
         self.list_disabledMods = QListView(ModSelector)
         self.list_disabledMods.setObjectName(u"list_disabledMods")
@@ -61,6 +68,13 @@ class Ui_ModSelector(object):
         self.label_2.setObjectName(u"label_2")
 
         self.verticalLayout_3.addWidget(self.label_2)
+
+        self.lineEdit_filterEnabled = QLineEdit(ModSelector)
+        self.lineEdit_filterEnabled.setObjectName(u"lineEdit_filterEnabled")
+        self.lineEdit_filterEnabled.setMaxLength(255)
+        self.lineEdit_filterEnabled.setClearButtonEnabled(True)
+
+        self.verticalLayout_3.addWidget(self.lineEdit_filterEnabled)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -123,6 +137,13 @@ class Ui_ModSelector(object):
 
         self.verticalLayout_2.addWidget(self.widget_modDetails)
 
+        QWidget.setTabOrder(self.lineEdit_filterDisabled, self.list_disabledMods)
+        QWidget.setTabOrder(self.list_disabledMods, self.button_enable)
+        QWidget.setTabOrder(self.button_enable, self.lineEdit_filterEnabled)
+        QWidget.setTabOrder(self.lineEdit_filterEnabled, self.list_enabledMods)
+        QWidget.setTabOrder(self.list_enabledMods, self.button_disable)
+        QWidget.setTabOrder(self.button_disable, self.button_moveUp)
+        QWidget.setTabOrder(self.button_moveUp, self.button_moveDown)
 
         self.retranslateUi(ModSelector)
     # setupUi
@@ -130,11 +151,13 @@ class Ui_ModSelector(object):
     def retranslateUi(self, ModSelector):
         ModSelector.setWindowTitle(QCoreApplication.translate("ModSelector", u"ModSelector", None))
         self.label.setText(QCoreApplication.translate("ModSelector", u"Available items", None))
+        self.lineEdit_filterDisabled.setPlaceholderText(QCoreApplication.translate("ModSelector", u"Search...", None))
 #if QT_CONFIG(tooltip)
         self.list_disabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
 #endif // QT_CONFIG(tooltip)
         self.button_enable.setText(QCoreApplication.translate("ModSelector", u"Enable selected \u2192", None))
         self.label_2.setText(QCoreApplication.translate("ModSelector", u"Enabled items", None))
+        self.lineEdit_filterEnabled.setPlaceholderText(QCoreApplication.translate("ModSelector", u"Search...", None))
 #if QT_CONFIG(tooltip)
         self.list_enabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
 #endif // QT_CONFIG(tooltip)
