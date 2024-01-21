@@ -77,7 +77,12 @@ class ModItemModel(QAbstractListModel):
         if role == Qt.ItemDataRole.DisplayRole:
             if index.column() > 0:
                 return None
-            return self.items[index.row()].modInfo.name
+            item = self.items[index.row()]
+            mod = item.modInfo
+            display_string = mod.name
+            if item.workshopId:
+                display_string += f" [{item.workshopId}]"
+            return display_string
         elif role == Qt.ItemDataRole.BackgroundRole:
             pass
 
@@ -149,9 +154,9 @@ class ModManager(GeneratedElement):
         all_mods = discover_available_mods()
         read_enabled_mods(server_config, all_mods)
         model = ModItemModel(all_mods, parent=self.widget)
-        filterModel_disabled = QSortFilterProxyModel(parent=self.widget)
-        filterModel_disabled.setSourceModel(model)
-        self.ui.list_disabled.setModel(filterModel_disabled)
+        disabled_filter_model = QSortFilterProxyModel(parent=self.widget)
+        disabled_filter_model.setSourceModel(model)
+        self.ui.list_disabledMods.setModel(disabled_filter_model)
 
     @Slot()
     def enable_mods(self):

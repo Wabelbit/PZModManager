@@ -16,16 +16,18 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QLabel,
-    QListView, QPushButton, QSizePolicy, QVBoxLayout,
-    QWidget)
+    QLayout, QListView, QPushButton, QSizePolicy,
+    QVBoxLayout, QWidget)
 
 class Ui_ModSelector(object):
     def setupUi(self, ModSelector):
         if not ModSelector.objectName():
             ModSelector.setObjectName(u"ModSelector")
         ModSelector.resize(800, 600)
-        self.horizontalLayout = QHBoxLayout(ModSelector)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.verticalLayout_2 = QVBoxLayout(ModSelector)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.label = QLabel(ModSelector)
@@ -33,35 +35,25 @@ class Ui_ModSelector(object):
 
         self.verticalLayout.addWidget(self.label)
 
-        self.list_disabled = QListView(ModSelector)
-        self.list_disabled.setObjectName(u"list_disabled")
-        self.list_disabled.setDragDropMode(QAbstractItemView.DragOnly)
-        self.list_disabled.setDefaultDropAction(Qt.IgnoreAction)
-        self.list_disabled.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_disabled.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.list_disabled.setIconSize(QSize(16, 16))
-        self.list_disabled.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.list_disabled.setMovement(QListView.Free)
+        self.list_disabledMods = QListView(ModSelector)
+        self.list_disabledMods.setObjectName(u"list_disabledMods")
+        self.list_disabledMods.setDragDropMode(QAbstractItemView.DragOnly)
+        self.list_disabledMods.setDefaultDropAction(Qt.IgnoreAction)
+        self.list_disabledMods.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.list_disabledMods.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.list_disabledMods.setIconSize(QSize(16, 16))
+        self.list_disabledMods.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.list_disabledMods.setMovement(QListView.Free)
 
-        self.verticalLayout.addWidget(self.list_disabled)
+        self.verticalLayout.addWidget(self.list_disabledMods)
 
-
-        self.horizontalLayout.addLayout(self.verticalLayout)
-
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.button_enable = QPushButton(ModSelector)
         self.button_enable.setObjectName(u"button_enable")
 
-        self.verticalLayout_2.addWidget(self.button_enable)
-
-        self.button_disable = QPushButton(ModSelector)
-        self.button_disable.setObjectName(u"button_disable")
-
-        self.verticalLayout_2.addWidget(self.button_disable)
+        self.verticalLayout.addWidget(self.button_enable)
 
 
-        self.horizontalLayout.addLayout(self.verticalLayout_2)
+        self.horizontalLayout_3.addLayout(self.verticalLayout)
 
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
@@ -70,41 +62,84 @@ class Ui_ModSelector(object):
 
         self.verticalLayout_3.addWidget(self.label_2)
 
-        self.list_enabled = QListView(ModSelector)
-        self.list_enabled.setObjectName(u"list_enabled")
-        self.list_enabled.setDragDropMode(QAbstractItemView.DragOnly)
-        self.list_enabled.setDefaultDropAction(Qt.IgnoreAction)
-        self.list_enabled.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_enabled.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.list_enabled.setIconSize(QSize(16, 16))
-        self.list_enabled.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.list_enabled.setMovement(QListView.Free)
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.list_enabledMods = QListView(ModSelector)
+        self.list_enabledMods.setObjectName(u"list_enabledMods")
+        self.list_enabledMods.setDragDropMode(QAbstractItemView.DragOnly)
+        self.list_enabledMods.setDefaultDropAction(Qt.IgnoreAction)
+        self.list_enabledMods.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.list_enabledMods.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.list_enabledMods.setIconSize(QSize(16, 16))
+        self.list_enabledMods.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.list_enabledMods.setMovement(QListView.Free)
 
-        self.verticalLayout_3.addWidget(self.list_enabled)
+        self.horizontalLayout_2.addWidget(self.list_enabledMods)
+
+        self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setSizeConstraint(QLayout.SetFixedSize)
+        self.button_moveUp = QPushButton(ModSelector)
+        self.button_moveUp.setObjectName(u"button_moveUp")
+        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.button_moveUp.sizePolicy().hasHeightForWidth())
+        self.button_moveUp.setSizePolicy(sizePolicy)
+        self.button_moveUp.setMaximumSize(QSize(25, 16777215))
+
+        self.verticalLayout_4.addWidget(self.button_moveUp)
+
+        self.button_moveDown = QPushButton(ModSelector)
+        self.button_moveDown.setObjectName(u"button_moveDown")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.button_moveDown.sizePolicy().hasHeightForWidth())
+        self.button_moveDown.setSizePolicy(sizePolicy1)
+        self.button_moveDown.setMaximumSize(QSize(25, 16777215))
+
+        self.verticalLayout_4.addWidget(self.button_moveDown)
 
 
-        self.horizontalLayout.addLayout(self.verticalLayout_3)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_4)
 
-        QWidget.setTabOrder(self.list_disabled, self.button_enable)
-        QWidget.setTabOrder(self.button_enable, self.list_enabled)
-        QWidget.setTabOrder(self.list_enabled, self.button_disable)
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
+
+        self.button_disable = QPushButton(ModSelector)
+        self.button_disable.setObjectName(u"button_disable")
+
+        self.verticalLayout_3.addWidget(self.button_disable)
+
+
+        self.horizontalLayout_3.addLayout(self.verticalLayout_3)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+
+        self.widget_modDetails = QWidget(ModSelector)
+        self.widget_modDetails.setObjectName(u"widget_modDetails")
+
+        self.verticalLayout_2.addWidget(self.widget_modDetails)
+
 
         self.retranslateUi(ModSelector)
-
-        QMetaObject.connectSlotsByName(ModSelector)
     # setupUi
 
     def retranslateUi(self, ModSelector):
         ModSelector.setWindowTitle(QCoreApplication.translate("ModSelector", u"ModSelector", None))
         self.label.setText(QCoreApplication.translate("ModSelector", u"Available items", None))
 #if QT_CONFIG(tooltip)
-        self.list_disabled.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
+        self.list_disabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
 #endif // QT_CONFIG(tooltip)
-        self.button_enable.setText(QCoreApplication.translate("ModSelector", u"Enable -->", None))
-        self.button_disable.setText(QCoreApplication.translate("ModSelector", u"<-- Disable", None))
+        self.button_enable.setText(QCoreApplication.translate("ModSelector", u"Enable selected \u2192", None))
         self.label_2.setText(QCoreApplication.translate("ModSelector", u"Enabled items", None))
 #if QT_CONFIG(tooltip)
-        self.list_enabled.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
+        self.list_enabledMods.setToolTip(QCoreApplication.translate("ModSelector", u"Available mods and workshop items", None))
 #endif // QT_CONFIG(tooltip)
+        self.button_moveUp.setText(QCoreApplication.translate("ModSelector", u"\u2191", None))
+        self.button_moveDown.setText(QCoreApplication.translate("ModSelector", u"\u2193", None))
+        self.button_disable.setText(QCoreApplication.translate("ModSelector", u"\u2190 Disable selected", None))
     # retranslateUi
 
