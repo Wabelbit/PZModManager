@@ -29,12 +29,12 @@ def discover_available_mods() -> List[ModItem]:
     workshop_dir = get_steam_path() / "steamapps" / "workshop" / "content" / "108600"
 
     # discover mods from workshop items (good to know: one workshop item can contain many mods)
-    workshop_mods = [ModItem(PZModInfo.from_info_file(mod_info_file), False, item_dir.name)
+    workshop_mods = [ModItem(PZModInfo.from_info_file(mod_info_file), item_dir.name)
                      for item_dir in workshop_dir.glob("*/")
                      for mod_info_file in item_dir.glob("mods/*/mod.info")]
 
     # discover locally installed mods
-    local_mods = [ModItem(PZModInfo.from_info_file(mod_info_file), False, None)
+    local_mods = [ModItem(PZModInfo.from_info_file(mod_info_file), None)
                   for mod_info_file in local_mod_dir.glob("*/mod.info") if mod_info_file.parent.name != "examplemod"]
 
     return sorted(workshop_mods + local_mods, key=lambda mod: mod.modInfo.id)
@@ -42,19 +42,20 @@ def discover_available_mods() -> List[ModItem]:
 
 def read_enabled_mods(server_config: Path, mod_items: List[ModItem]):
     # load enabled mods and items from ini file
-    enabled_mods: Set[str] = set()
-    enabled_workshop_items: Set[str] = set()
+    enabled_mods: List[str] = []
+    enabled_workshop_items: List[str] = []  # TODO not sure how relevant this list really is for *reading*...
     with server_config.open() as f:
         for line in f.readlines():
             line = line.strip()
-            if line.startswith("Mods="):
-                enabled_mods.update(line[len("Mods="):].split(';'))
-            elif line.startswith("WorkshopItems="):
-                enabled_workshop_items.update(line[len("WorkshopItems="):].split(';'))
+            if line.startswith("Mods=") and len(line) > len("Mods="):
+                enabled_mods = line[len("Mods="):].split(';')
+            elif line.startswith("WorkshopItems=") and len(line) > len("WorkshopItems="):
+                enabled_workshop_items = line[len("WorkshopItems="):].split(';')
 
-    # go through mod items and set 'enabled' flags accordingly
-    for mod in mod_items:
-        mod.enabled = mod.modInfo.id in enabled_mods or mod.workshopId in enabled_workshop_items
+    # assign load order from enabled mods list to all items where applicable
+    mods_by_id = {mod.modInfo.id: mod for mod in mod_items}
+    for i, mod_id in enumerate(enabled_mods):
+        mods_by_id[mod_id].load_order = i
 
 
 class ModManager(QObject):
