@@ -4,7 +4,8 @@ import string
 from typing import List, Iterable, Optional, Set
 import random
 
-from PySide6.QtCore import QObject, Slot, QAbstractListModel, Qt, QSortFilterProxyModel
+from PySide6.QtCore import QObject, Slot, QAbstractListModel, Qt, QSortFilterProxyModel, QModelIndex
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
 
 from pz import PZModInfo
@@ -61,6 +62,9 @@ class ModItemModel(QAbstractListModel):
 
         super().dataChanged.emit(self.indices[0], self.indices[-1], [])
 
+    def item(self, index: QModelIndex):
+        return self.items[index.row()]
+
     def index(self, row, column=0, parent=None):
         assert column == 0
         return self.indices[row]
@@ -75,17 +79,19 @@ class ModItemModel(QAbstractListModel):
         return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemNeverHasChildren
 
     def data(self, index, role=...):
+        item = self.items[index.row()]
+        mod = item.modInfo
+
         if role == Qt.ItemDataRole.DisplayRole:
             if index.column() > 0:
                 return None
-            item = self.items[index.row()]
-            mod = item.modInfo
             display_string = mod.name
             if item.workshopId:
                 display_string += f" [{item.workshopId}]"
             return display_string
         elif role == Qt.ItemDataRole.BackgroundRole:
-            pass
+            # so far, this is only for debugging purposes
+            return QColor(200,255,200) if item.enabled else QColor(255,200,200)
 
     def removeRows(self, row, count, parent=...):
         super().beginRemoveRows(parent, row, row+count)
@@ -130,6 +136,19 @@ def read_enabled_mods(server_config: Path, mod_items: List[ModItem]):
         mod.enabled = mod.modInfo.id in enabled_mods or mod.workshopId in enabled_workshop_items
 
 
+class ModViewProxyModel(QSortFilterProxyModel):
+    def __init__(self, enabled_state_filter: bool, parent=None):
+        super().__init__(parent)
+        self.enabled_state_filter = enabled_state_filter
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        item_index: QModelIndex = super().sourceModel().index(source_row, 0, source_parent)
+        row_data: ModItem = super().sourceModel().item(item_index)
+        if row_data.enabled != self.enabled_state_filter:
+            return False
+        return super().filterAcceptsRow(source_row, source_parent)
+
+
 class ModManager(GeneratedElement):
     def __init__(self, server_config: Path, tabber: QTabWidget):
         # init stuff
@@ -158,12 +177,12 @@ class ModManager(GeneratedElement):
         model = ModItemModel(all_mods, parent=self.widget)
 
         # ... model for "available" list
-        disabled_filter_model = QSortFilterProxyModel(parent=self.widget)
+        disabled_filter_model = ModViewProxyModel(False, parent=self.widget)
         disabled_filter_model.setSourceModel(model)
         self.ui.list_disabledMods.setModel(disabled_filter_model)
 
         # ... model for "enabled" list
-        enabled_filter_model = QSortFilterProxyModel(parent=self.widget)
+        enabled_filter_model = ModViewProxyModel(True, parent=self.widget)
         enabled_filter_model.setSourceModel(model)
         self.ui.list_enabledMods.setModel(enabled_filter_model)
 
