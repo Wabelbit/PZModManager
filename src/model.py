@@ -54,16 +54,17 @@ class ModItemModel(QAbstractListModel):
         self.sort(0)
         super().dataChanged.emit(self.indices[0], self.indices[-1], [])
 
-    def read_item(self, index: QModelIndex):
+    def get_item_of(self, index: QModelIndex):
         return self.items[index.row()]
 
     def set_mod_state(self, index: QModelIndex, enabled: bool):
+        item = self.items[index.row()]
         if enabled:
             highest_load_order = max(0, max(self.items, key=lambda i: i.load_order or -1).load_order or 0)
-            self.items[index.row()].load_order = highest_load_order + 1
+            item.load_order = highest_load_order + 1
         else:
-            self.items[index.row()].load_order = None
-        print("set", self.items[index.row()].modInfo.id, enabled, "@", self.items[index.row()].load_order)
+            item.load_order = None
+        print("set", item.modInfo.id, enabled, "@", item.load_order)
 
     def index(self, row, column=0, parent=None):
         assert column == 0
@@ -116,7 +117,7 @@ class ModViewProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
         model: ModItemModel = super().sourceModel()
         item_index: QModelIndex = model.index(source_row, 0, source_parent)
-        row_data: ModItem = model.read_item(item_index)
+        row_data: ModItem = model.get_item_of(item_index)
         if row_data.enabled != self.enabled_state_filter:
             return False
         return super().filterAcceptsRow(source_row, source_parent)

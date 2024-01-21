@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 from typing import List, Iterable, Optional
 
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal, QItemSelectionModel
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget, QListView
 
 from model import ModItem, ModItemModel, ModViewProxyModel
@@ -82,6 +82,8 @@ class ModManager(QObject):
         self.ui.button_disable.clicked.connect(self.disable_mods)
         self.ui.list_disabledMods.clicked.connect(self.set_disabled_list_active)
         self.ui.list_enabledMods.clicked.connect(self.set_enabled_list_active)
+        self.ui.button_moveUp.clicked.connect(self.move_enabled_up)
+        self.ui.button_moveDown.clicked.connect(self.move_enabled_down)
         self.modStateChanged.connect(self.mod_state_changed)
 
         # create data model and set up list views
@@ -143,6 +145,45 @@ class ModManager(QObject):
     @Slot()
     def set_enabled_list_active(self):
         self.active_list = self.ui.list_enabledMods
+
+    def move_enabled_up(self):
+        self._move_enabled_mods(-1)
+
+    @Slot()
+    def move_enabled_down(self):
+        self._move_enabled_mods(1)
+
+    def _move_enabled_mods(self, direction: int):
+        list_view = self.ui.list_enabledMods
+        selection = sorted(list_view.selectedIndexes(), key=lambda x: x.row())
+        if len(selection) == 0 \
+                or direction < 0 and selection[0].row() == 0 \
+                or direction > 0 and selection[-1].row() == self.model.counts()[1] - 1:
+            # do nothing if there is no selection or top-most selected item is at the very top already
+            return
+
+        # algorithm:
+        #   to move items up, go through the list top-to-bottom
+        #   and swap the load_order of each selected item with the one of the item directly before it
+        filtered_rows_to_select = []
+        for filtered_item_index in selection:
+            actual_selected_item_index = self.enabled_filter_model.mapToSource(filtered_item_index)
+            filtered_item_index_before = self.enabled_filter_model.index(filtered_item_index.row() + direction, 0)
+            actual_item_index_before = self.enabled_filter_model.mapToSource(filtered_item_index_before)
+
+            selected_item = self.model.get_item_of(actual_selected_item_index)
+            item_before = self.model.get_item_of(actual_item_index_before)
+            selected_item.load_order += direction
+            item_before.load_order -= direction
+
+            filtered_rows_to_select.append(filtered_item_index_before.row())
+            self.model.update()
+
+        # update current selection accordingly, so it gets moved with the item(s)
+        list_view.clearSelection()
+        sm = list_view.selectionModel()
+        for row in filtered_rows_to_select:
+            sm.select(self.enabled_filter_model.index(row, 0), QItemSelectionModel.SelectionFlag.Select)
 
     @Slot()
     def mod_state_changed(self, total_count: int, enabled_count: int):
