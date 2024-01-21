@@ -60,15 +60,21 @@ class ModItemModel(QAbstractListModel):
         for i, modInfo in enumerate(mods):
             self.indices.append(super().createIndex(i, 0, modInfo))
 
-        super().dataChanged.emit(self.indices[0], self.indices[-1], [])
-
     def counts(self) -> (int, int):
         total = len(self.items)
         enabled = sum(1 for item in self.items if item.enabled)
+        print("counts", total, enabled)
         return total, enabled
 
-    def item(self, index: QModelIndex):
+    def update(self):
+        super().dataChanged.emit(self.indices[0], self.indices[-1], [])
+
+    def read_item(self, index: QModelIndex):
         return self.items[index.row()]
+
+    def set_mod_state(self, index: QModelIndex, enabled: bool):
+        self.items[index.row()].enabled = enabled
+        print("set", self.items[index.row()].modInfo.id, enabled)
 
     def index(self, row, column=0, parent=None):
         assert column == 0
@@ -147,8 +153,9 @@ class ModViewProxyModel(QSortFilterProxyModel):
         self.enabled_state_filter = enabled_state_filter
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
-        item_index: QModelIndex = super().sourceModel().index(source_row, 0, source_parent)
-        row_data: ModItem = super().sourceModel().item(item_index)
+        model: ModItemModel = super().sourceModel()
+        item_index: QModelIndex = model.index(source_row, 0, source_parent)
+        row_data: ModItem = model.read_item(item_index)
         if row_data.enabled != self.enabled_state_filter:
             return False
         return super().filterAcceptsRow(source_row, source_parent)
@@ -186,36 +193,52 @@ class ModManager(GeneratedElement):
         self.model = ModItemModel(self.all_mods, parent=self.widget)
 
         # ... model for "available" list
-        disabled_filter_model = ModViewProxyModel(False, parent=self.widget)
-        disabled_filter_model.setSourceModel(self.model)
-        self.ui.list_disabledMods.setModel(disabled_filter_model)
+        self.disabled_filter_model = ModViewProxyModel(False, parent=self.widget)
+        self.disabled_filter_model.setSourceModel(self.model)
+        self.ui.list_disabledMods.setModel(self.disabled_filter_model)
 
         # ... model for "enabled" list
-        enabled_filter_model = ModViewProxyModel(True, parent=self.widget)
-        enabled_filter_model.setSourceModel(self.model)
-        self.ui.list_enabledMods.setModel(enabled_filter_model)
+        self.enabled_filter_model = ModViewProxyModel(True, parent=self.widget)
+        self.enabled_filter_model.setSourceModel(self.model)
+        self.ui.list_enabledMods.setModel(self.enabled_filter_model)
 
         # hook up search bars
-        self.ui.lineEdit_filterDisabled.textChanged.connect(disabled_filter_model.setFilterFixedString)
-        self.ui.lineEdit_filterEnabled.textChanged.connect(enabled_filter_model.setFilterFixedString)
+        self.ui.lineEdit_filterDisabled.textChanged.connect(self.disabled_filter_model.setFilterFixedString)
+        self.ui.lineEdit_filterEnabled.textChanged.connect(self.enabled_filter_model.setFilterFixedString)
 
         # update certain things
         self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
     def enable_mods(self):
-        print("Enabling mods in " + self.config_name, self.tabber.currentWidget())
+        selection = self.ui.list_disabledMods.selectedIndexes()
+        print(f"Enabling {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
+        if len(selection) == 0:
+            return
+        for selected_item_index in selection:
+            selected_item_index = self.disabled_filter_model.mapToSource(selected_item_index)
+            self.model.set_mod_state(selected_item_index, True)
         self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
     def disable_mods(self):
-        print("Disabling mods in " + self.config_name, self.tabber.currentWidget())
+        selection = self.ui.list_enabledMods.selectedIndexes()
+        print(f"Disabling {len(selection)} mods in " + self.config_name, self.tabber.currentWidget())
+        if len(selection) == 0:
+            return
+        for selected_item_index in selection:
+            selected_item_index = self.enabled_filter_model.mapToSource(selected_item_index)
+            self.model.set_mod_state(selected_item_index, False)
         self.modStateChanged.emit(*self.model.counts())
 
     @Slot()
     def mod_state_changed(self, total_count: int, enabled_count: int):
+        print("Mods state changed", total_count, enabled_count)
         self.ui.label_disabledCount.setText(f"({total_count-enabled_count})")
         self.ui.label_enabledCount.setText(f"({enabled_count})")
+        self.model.update()
+        self.enabled_filter_model.invalidate()
+        self.disabled_filter_model.invalidate()
 
     @Slot()
     def show_details(self, visible: bool):
